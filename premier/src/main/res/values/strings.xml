@@ -1,0 +1,15 @@
+<resources>
+    <string name="back_again">Нажмите еще раз, чтобы выйти</string>
+    <string name="check_connection">Проверьте подключение к интернету. И попробуй еще раз</string>
+    <string name="slow_internet">Скорость интернета низкая. пожалуйста, подождите</string>
+    <string name="smth_wrong">Что-то пошло не так. Пожалуйста, попробуйте еще раз</string>
+    <string name="givePermission">Для корректное работы приложение нам нужны доступы</string>
+    <string name="app_language">Язык приложения</string>
+    <string name="russian">Русский</string>
+    <string name="uzbek">Узбекский</string>
+    <string name="app_theme">Тема приложения</string>
+    <string name="theme_light">Светлая</string>
+    <string name="theme_dark">Темная</string>
+    <string name="theme_system">Как в системе</string>
+
+</resources>

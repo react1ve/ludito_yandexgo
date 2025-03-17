@@ -1,0 +1,163 @@
+{
+  "project_info": {
+    "project_number": "814204939219",
+    "firebase_url": "https://frikadelkin-support-default-rtdb.firebaseio.com",
+    "project_id": "frikadelkin-support",
+    "storage_bucket": "frikadelkin-support.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:814204939219:android:b40496f0d130edd3805d26",
+        "android_client_info": {
+          "package_name": "com.frikadelkin.courier"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBD7rJwrilvK7GbJy9W4oNa_H6dXc9YP_o"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:814204939219:android:dc4135d31546c3c5805d26",
+        "android_client_info": {
+          "package_name": "com.reactive.everyproxy"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBD7rJwrilvK7GbJy9W4oNa_H6dXc9YP_o"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:814204939219:android:6cd8e86bc18b64e6805d26",
+        "android_client_info": {
+          "package_name": "com.reactive.ludito"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBD7rJwrilvK7GbJy9W4oNa_H6dXc9YP_o"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:814204939219:android:501a491e52f7f703805d26",
+        "android_client_info": {
+          "package_name": "com.reactive.premier"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBD7rJwrilvK7GbJy9W4oNa_H6dXc9YP_o"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:814204939219:android:b0b3a1b9fe34dd1c805d26",
+        "android_client_info": {
+          "package_name": "com.reactive.yandexofflinemaps"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBD7rJwrilvK7GbJy9W4oNa_H6dXc9YP_o"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:814204939219:android:373fa2564e4a9dd9805d26",
+        "android_client_info": {
+          "package_name": "com.sam.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBD7rJwrilvK7GbJy9W4oNa_H6dXc9YP_o"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:814204939219:android:6e1ad1e907a0edc9805d26",
+        "android_client_info": {
+          "package_name": "ru.edisoncorp.verona"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBD7rJwrilvK7GbJy9W4oNa_H6dXc9YP_o"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:814204939219:android:77e4101b58d56376805d26",
+        "android_client_info": {
+          "package_name": "ru.frikadelkin"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBD7rJwrilvK7GbJy9W4oNa_H6dXc9YP_o"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

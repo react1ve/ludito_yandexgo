@@ -1,0 +1,6 @@
+<resources>
+    <string name="app_name">Ludito &amp; Mukhammad</string>
+    <string name="address_not_found">Адрес не найден</string>
+    <string name="loading_address">Получаем адрес...</string>
+    <string name="search_hint">Поиск</string>
+</resources>

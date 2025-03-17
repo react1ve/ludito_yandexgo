@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="accent">@color/red</color>
+
+    <color name="black">#212121</color>
+    <color name="white">#FFFFFF</color>
+    <color name="yellow">#FFC84C</color>
+    <color name="red">#FF4433</color>
+    <color name="grey">#DADADA</color>
+    <color name="dark_grey">#B0ABAB</color>
+    <color name="green">#5BC250</color>
+
+</resources>

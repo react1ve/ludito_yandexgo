@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="64dp"
+    android:layout_margin="16dp"
+    app:cardCornerRadius="16dp">
+
+    <SearchView
+        android:id="@+id/search"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_margin="8dp"
+        android:background="@drawable/rounded_search"
+        android:closeIcon="@drawable/ic_close"
+        android:ellipsize="end"
+        android:gravity="center"
+        android:imeOptions="actionSearch"
+        android:paddingHorizontal="15dp"
+        android:paddingStart="0dp"
+        android:paddingEnd="0dp"
+        android:queryBackground="@null"
+        android:queryHint="@string/search_hint"
+        app:defaultQueryHint="Поиск" />
+
+</androidx.cardview.widget.CardView>
