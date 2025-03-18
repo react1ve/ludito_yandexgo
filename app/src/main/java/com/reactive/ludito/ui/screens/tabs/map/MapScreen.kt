@@ -5,27 +5,23 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.view.LayoutInflater
-import android.view.View
 import android.view.animation.AccelerateDecelerateInterpolator
-import android.view.animation.Animation
-import android.view.animation.AnimationUtils
 import android.view.animation.BounceInterpolator
 import android.view.animation.DecelerateInterpolator
 import androidx.lifecycle.lifecycleScope
 import com.reactive.ludito.R
-import com.reactive.ludito.databinding.TabMapBinding
+import com.reactive.ludito.data.LocationInfo
+import com.reactive.ludito.data.SearchAddress
+import com.reactive.ludito.databinding.FragmentTabMapBinding
+import com.reactive.ludito.ui.screens.tabs.map.details.DetailsBottomSheet
 import com.reactive.ludito.ui.screens.tabs.map.search.SearchBottomSheet
-import com.reactive.ludito.ui.screens.tabs.map.search.SearchResponseItem
 import com.reactive.premier.base.BasePremierFragment
-import com.yandex.mapkit.GeoObject
+import com.reactive.premier.utils.extensions.toast
 import com.yandex.mapkit.MapKitFactory
-import com.yandex.mapkit.geometry.BoundingBox
-import com.yandex.mapkit.geometry.Geometry
 import com.yandex.mapkit.geometry.Point
 import com.yandex.mapkit.map.CameraPosition
 import com.yandex.mapkit.map.IconStyle
 import com.yandex.mapkit.map.Map
-import com.yandex.mapkit.map.MapObjectTapListener
 import com.yandex.mapkit.user_location.UserLocationLayer
 import com.yandex.runtime.image.ImageProvider
 import kotlinx.coroutines.Dispatchers
@@ -33,23 +29,21 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import com.reactive.premier.R as R2
 
-class MapFragment : BasePremierFragment<TabMapBinding, MapViewModel>(MapViewModel::class) {
+class MapScreen : BasePremierFragment<FragmentTabMapBinding, MapViewModel>(MapViewModel::class) {
 
-    override fun getBinding(inflater: LayoutInflater): TabMapBinding =
-        TabMapBinding.inflate(inflater)
+    override fun getBinding(inflater: LayoutInflater): FragmentTabMapBinding =
+        FragmentTabMapBinding.inflate(inflater)
 
     private lateinit var userLocationLayer: UserLocationLayer
     private lateinit var map: Map
-    private lateinit var animFadeIn: Animation
-    private lateinit var animFadeOut: Animation
     private var isMoving = false
     private val cameraDebounceHandler = Handler(Looper.getMainLooper())
     private var cameraDebounceRunnable: Runnable? = null
-
-    private val searchResultPlacemarkTapListener = MapObjectTapListener { mapObject, _ ->
-        // Show details dialog on placemark tap.
-        val selectedObject = (mapObject.userData as? GeoObject)
-        true
+    private val detailsBottomSheet by lazy {
+        DetailsBottomSheet {
+            binding.searchView.setText("")
+            focusOnUserLocation()
+        }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -58,53 +52,40 @@ class MapFragment : BasePremierFragment<TabMapBinding, MapViewModel>(MapViewMode
     }
 
     override fun initialize() {
-        setupAnimations()
         setupMap()
         setupSearch()
     }
 
-    private fun setupSearch() = with(binding.searchView.search) {
-        isClickable = false
+    private fun setupSearch() = with(binding.searchView) {
+        disable()
 
-        val bottomsSheet = SearchBottomSheet(visibleRegion = map.visibleRegion) { list, itemBox ->
-            updateSearchResponsePlacemarks(list)
-
-            focusCamera(
-                list.map { item -> item.point },
-                itemBox,
-            )
-
+        val bottomsSheet = SearchBottomSheet(visibleRegion = map.visibleRegion) { address ->
+            updateSearchResponsePlacemarks(address)
+            focusCamera(address.point)
         }
+
         setOnClickListener {
             bottomsSheet.show(childFragmentManager, "")
         }
     }
 
-    private fun updateSearchResponsePlacemarks(items: List<SearchResponseItem>) {
+    private fun updateSearchResponsePlacemarks(address: SearchAddress) {
         map.mapObjects.clear()
 
         val imageProvider = ImageProvider.fromResource(requireContext(), R2.drawable.search_result)
 
-        items.forEach {
-            map.mapObjects.addPlacemark().apply {
-                geometry = it.point
-                setIcon(imageProvider, IconStyle().apply { scale = 0.5f })
-                addTapListener(searchResultPlacemarkTapListener)
-                userData = it.geoObject
-            }
+        map.mapObjects.addPlacemark().apply {
+            geometry = address.point
+            setIcon(imageProvider, IconStyle().apply { scale = 0.5f })
+            userData = address.geoObject
         }
     }
 
-    private fun focusCamera(points: List<Point>, boundingBox: BoundingBox) {
-        if (points.isEmpty()) return
+    private fun focusCamera(point: Point) {
+        getAddressAsync(point.latitude.toString(), point.longitude.toString())
 
-        val position = if (points.size == 1) {
-            getAddressAsync(points.first().latitude.toString(), points.first().longitude.toString())
-            map.cameraPosition.run {
-                CameraPosition(points.first(), zoom, azimuth, tilt)
-            }
-        } else {
-            map.cameraPosition(Geometry.fromBoundingBox(boundingBox))
+        val position = map.cameraPosition.run {
+            CameraPosition(point, zoom, azimuth, tilt)
         }
 
         map.move(
@@ -122,11 +103,6 @@ class MapFragment : BasePremierFragment<TabMapBinding, MapViewModel>(MapViewMode
         }
     }
 
-    private fun setupAnimations() {
-        animFadeOut = AnimationUtils.loadAnimation(requireContext(), R2.anim.fade_out)
-        animFadeIn = AnimationUtils.loadAnimation(requireContext(), R2.anim.fade_in)
-    }
-
     private fun setupMap() = with(binding) {
         map = mapview.mapWindow.map.apply {
             isRotateGesturesEnabled = false
@@ -139,10 +115,11 @@ class MapFragment : BasePremierFragment<TabMapBinding, MapViewModel>(MapViewMode
 
     private fun setupLocationLayer() {
         MapKitFactory.getInstance().also { mapKit ->
-            userLocationLayer = mapKit.createUserLocationLayer(binding.mapview.mapWindow).apply {
-                isVisible = true
-                isHeadingEnabled = true
-            }
+            userLocationLayer =
+                mapKit.createUserLocationLayer(binding.mapview.mapWindow).apply {
+                    isVisible = true
+                    isHeadingEnabled = true
+                }
         }
     }
 
@@ -174,7 +151,6 @@ class MapFragment : BasePremierFragment<TabMapBinding, MapViewModel>(MapViewMode
     private fun onCameraMovementStarted() {
         isMoving = true
         startPinLiftAnimation()
-        hideAddressViews()
     }
 
     private fun onCameraMovementFinished(cameraPosition: CameraPosition) {
@@ -190,7 +166,8 @@ class MapFragment : BasePremierFragment<TabMapBinding, MapViewModel>(MapViewMode
     private fun schedulePinDropAndAddressLookup(cameraPosition: CameraPosition) {
         cameraDebounceRunnable = Runnable {
             startPinDropAnimation {
-                fetchAddressForLocation(cameraPosition.target)
+                val location = cameraPosition.target
+//                getAddressAsync(location.latitude.toString(), location.longitude.toString())
             }
         }
         cameraDebounceHandler.postDelayed(cameraDebounceRunnable!!, 150)
@@ -245,13 +222,6 @@ class MapFragment : BasePremierFragment<TabMapBinding, MapViewModel>(MapViewMode
             ).start()
     }
 
-    private fun hideAddressViews() {
-        with(binding.bottomSheet) {
-            placeName.animateAddress(false)
-            placeAddress.animateAddress(false)
-        }
-    }
-
     private fun adjustZoom(value: Int) {
         map.move(
             CameraPosition(
@@ -267,26 +237,19 @@ class MapFragment : BasePremierFragment<TabMapBinding, MapViewModel>(MapViewMode
                 latitude = position.target.latitude
                 longitude = position.target.longitude
             }
-            fetchAddressForLocation(position.target)
         }
-    }
-
-    private fun fetchAddressForLocation(location: Point) {
-        getAddressAsync(location.latitude.toString(), location.longitude.toString())
     }
 
     private fun getAddressAsync(lat: String, lng: String) {
         lifecycleScope.launch {
             try {
-                updateAddress(getString(R.string.loading_address), "")
-
-                val locationInfo = withContext(Dispatchers.IO) {
+                val locationInfo: LocationInfo = withContext(Dispatchers.IO) {
                     viewModel.getAddressFromCoordinates(lat, lng)
                 }
 
-                updateAddress(locationInfo.name, locationInfo.address)
+                updateAddress(locationInfo)
             } catch (e: Exception) {
-                updateAddress(getString(R.string.address_not_found), "")
+                toast(requireContext(), getString(R.string.address_not_found))
             }
         }
     }
@@ -299,24 +262,13 @@ class MapFragment : BasePremierFragment<TabMapBinding, MapViewModel>(MapViewMode
         )
     }
 
-    private fun updateAddress(name: String, address: String) {
-        with(binding.bottomSheet) {
-            placeName.text = name
-            placeAddress.text = address
-            placeName.animateAddress(true)
-            placeAddress.animateAddress(true)
+    private fun updateAddress(locationInfo: LocationInfo) {
+        binding.searchView.setText(locationInfo.name)
+
+        if ((detailsBottomSheet.isAdded && detailsBottomSheet.isVisible).not()) {
+            detailsBottomSheet.setLocationInfo(locationInfo)
+            detailsBottomSheet.show(childFragmentManager, locationInfo.hashCode().toString())
         }
-    }
-
-    private fun View.animateAddress(show: Boolean) {
-        val translationY = if (show) 0f else 20f
-        val alpha = if (show) 1f else 0f
-        val animation = if (show) animFadeIn else animFadeOut
-
-        animate().translationY(translationY).alpha(alpha).setInterpolator(DecelerateInterpolator())
-            .setDuration(300).start()
-
-        startAnimation(animation)
     }
 
     private fun ValueAnimator.doOnEnd(action: () -> Unit) {

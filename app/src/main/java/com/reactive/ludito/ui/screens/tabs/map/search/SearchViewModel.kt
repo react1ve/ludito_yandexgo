@@ -3,8 +3,6 @@ package com.reactive.ludito.ui.screens.tabs.map.search
 import androidx.lifecycle.viewModelScope
 import com.reactive.ludito.data.SearchAddress
 import com.reactive.premier.base.BasePremierViewModel
-import com.reactive.premier.utils.extensions.toBoundingBox
-import com.yandex.mapkit.geometry.BoundingBox
 import com.yandex.mapkit.geometry.Geometry
 import com.yandex.mapkit.map.VisibleRegion
 import com.yandex.mapkit.map.VisibleRegionUtils
@@ -14,11 +12,6 @@ import com.yandex.mapkit.search.SearchManagerType
 import com.yandex.mapkit.search.SearchOptions
 import com.yandex.mapkit.search.Session
 import com.yandex.mapkit.search.Session.SearchListener
-import com.yandex.mapkit.search.SuggestItem
-import com.yandex.mapkit.search.SuggestOptions
-import com.yandex.mapkit.search.SuggestResponse
-import com.yandex.mapkit.search.SuggestSession
-import com.yandex.mapkit.search.SuggestType
 import com.yandex.runtime.Error
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.Flow
@@ -33,9 +26,10 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlin.time.Duration.Companion.seconds
 
+@Suppress("UNNECESSARY_SAFE_CALL")
 class SearchViewModel : BasePremierViewModel() {
 
-    private var suggestItems: List<SuggestItem> = emptyList()
+    private var searchItems: List<SearchAddress> = emptyList()
     private var searchSession: Session? = null
     private var zoomToSearchResult = false
     private val region = MutableStateFlow<VisibleRegion?>(null)
@@ -43,23 +37,18 @@ class SearchViewModel : BasePremierViewModel() {
         SearchFactory.getInstance().createSearchManager(SearchManagerType.COMBINED)
     }
 
-    private val suggestSession: SuggestSession = searchManager.createSuggestSession()
-
     @OptIn(FlowPreview::class)
     private val throttledRegion = region.debounce(1.seconds)
     private val query = MutableStateFlow("")
     private val searchState = MutableStateFlow<SearchState>(SearchState.Off)
-    private val suggestState = MutableStateFlow<SuggestState>(SuggestState.Off)
 
     val uiState: StateFlow<MapUiState> = combine(
         query,
         searchState,
-        suggestState,
-    ) { query, searchState, suggestState ->
+    ) { query, searchState ->
         MapUiState(
             query = query,
             searchState = searchState,
-            suggestState = suggestState,
         )
     }.stateIn(viewModelScope, SharingStarted.Lazily, MapUiState())
 
@@ -85,30 +74,9 @@ class SearchViewModel : BasePremierViewModel() {
         searchSession?.cancel()
         searchSession = null
         searchState.value = SearchState.Off
-        resetSuggest()
         query.value = ""
     }
 
-    /**
-     * Resubmitting suggests when query, region or searchState changes.
-     */
-    fun subscribeForSuggest(): Flow<*> {
-        return combine(
-            query,
-            throttledRegion,
-            searchState,
-        ) { query, region, searchState ->
-            if (query.isNotEmpty() && region != null && searchState == SearchState.Off) {
-                submitSuggest(query, region.toBoundingBox())
-            } else {
-                resetSuggest()
-            }
-        }
-    }
-
-    /**
-     * Performs the search again when the map position changes.
-     */
     fun subscribeForSearch(): Flow<*> {
         return throttledRegion.filter { it != null }
             .filter { searchState.value is SearchState.Success }
@@ -123,27 +91,117 @@ class SearchViewModel : BasePremierViewModel() {
             }
     }
 
-    private fun submitUriSearch(uri: String) {
-        searchSession?.cancel()
-        searchSession = searchManager.searchByURI(
-            uri,
-            SearchOptions(),
-            searchSessionListener
-        )
-        searchState.value = SearchState.Loading
-        zoomToSearchResult = true
-    }
-
     private val searchSessionListener = object : SearchListener {
         override fun onSearchResponse(response: Response) {
-            val items = response.collection.children.mapNotNull {
-                val point = it.obj?.geometry?.firstOrNull()?.point ?: return@mapNotNull null
-                SearchResponseItem(point, it.obj)
+            searchItems = response.collection.children.mapNotNull { searchResult ->
+                val obj = searchResult.obj ?: return@mapNotNull null
+                val point = obj.geometry.firstOrNull()?.point ?: return@mapNotNull null
+
+                val name = obj.name ?: ""
+
+                val address = obj.descriptionText ?: ""
+
+                var distance = ""
+                var rating = 0
+                var feedbacks = 0
+
+                try {
+                    obj.metadataContainer.let { container ->
+                        try {
+                            val distanceMetadata =
+                                container.getItem(com.yandex.mapkit.search.ToponymResultMetadata::class.java)
+                            if (distanceMetadata != null) {
+                                distanceMetadata::class.java.getDeclaredField("formattedDistance")
+                                    ?.let { field ->
+                                        field.isAccessible = true
+                                        val distanceValue = field.get(distanceMetadata)
+                                        if (distanceValue != null) {
+                                            distance = distanceValue.toString()
+                                        }
+                                    }
+                            }
+                        } catch (e: Exception) {
+                            e.printStackTrace()
+                        }
+
+                        try {
+                            val businessMetadata =
+                                container.getItem(com.yandex.mapkit.search.BusinessObjectMetadata::class.java)
+                            if (businessMetadata != null) {
+                                try {
+                                    businessMetadata::class.java.getDeclaredField("rating")
+                                        ?.let { field ->
+                                            field.isAccessible = true
+                                            val ratingValue = field.get(businessMetadata)
+                                            if (ratingValue != null && ratingValue is Number) {
+                                                rating = ratingValue.toInt()
+                                            }
+                                        }
+                                } catch (e: Exception) {
+                                    try {
+                                        businessMetadata::class.java.getDeclaredField("score")
+                                            ?.let { field ->
+                                                field.isAccessible = true
+                                                val scoreValue = field.get(businessMetadata)
+                                                if (scoreValue != null && scoreValue is Number) {
+                                                    rating = scoreValue.toInt()
+                                                }
+                                            }
+                                    } catch (e: Exception) {
+                                        e.printStackTrace()
+                                    }
+                                }
+
+                                try {
+                                    businessMetadata::class.java.getDeclaredField("reviewCount")
+                                        ?.let { field ->
+                                            field.isAccessible = true
+                                            val countValue = field.get(businessMetadata)
+                                            if (countValue != null && countValue is Number) {
+                                                feedbacks = countValue.toInt()
+                                            }
+                                        }
+                                } catch (e: Exception) {
+                                    try {
+                                        businessMetadata::class.java.getDeclaredField("reviews")
+                                            ?.let { field ->
+                                                field.isAccessible = true
+                                                val reviewsValue = field.get(businessMetadata)
+                                                if (reviewsValue != null && reviewsValue is Number) {
+                                                    feedbacks = reviewsValue.toInt()
+                                                }
+                                            }
+                                    } catch (e: Exception) {
+                                        e.printStackTrace()
+                                    }
+                                }
+                            }
+                        } catch (e: Exception) {
+                            e.printStackTrace()
+                        }
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+
+                val id = (name + address + point.latitude + point.longitude).hashCode()
+
+                SearchAddress(
+                    id = id,
+                    name = name,
+                    address = address,
+                    distance = distance,
+                    rating = rating,
+                    feedbacks = feedbacks,
+                    point = point,
+                    geoObject = obj
+                )
             }
+
             val boundingBox = response.metadata.boundingBox ?: return
 
             searchState.value = SearchState.Success(
-                items,
+                searchItems,
                 zoomToSearchResult,
                 boundingBox,
             )
@@ -166,66 +224,5 @@ class SearchViewModel : BasePremierViewModel() {
         )
         searchState.value = SearchState.Loading
         zoomToSearchResult = true
-    }
-
-    fun onSuggestionClick(address: SearchAddress) =
-        suggestItems.first { it.hashCode() == address.id }.let {
-            // For Action.SUBSTITUTE we need just to substitute
-            // query text.
-            setQueryText(it.displayText ?: "")
-            // For Action.SEARCH also need to start search immediately.
-            if (it.action == SuggestItem.Action.SEARCH) {
-                val uri = it.uri
-                if (uri != null) {
-                    // Search by URI if exists.
-                    submitUriSearch(uri)
-                } else {
-                    // Otherwise, search by searchText.
-                    startSearch(it.searchText)
-                }
-            }
-        }
-
-    private val suggestSessionListener = object : SuggestSession.SuggestListener {
-        override fun onResponse(responce: SuggestResponse) {
-            suggestItems = responce.items.take(SUGGEST_NUMBER_LIMIT)
-            val addresses = suggestItems.map {
-                SearchAddress(
-                    id = it.hashCode(),
-                    name = it.title.text,
-                    address = it.subtitle?.text.orEmpty(),
-                    distance = "",
-                    location = it.center
-                )
-            }
-            suggestState.value = SuggestState.Success(addresses)
-        }
-
-        override fun onError(error: Error) {
-            suggestState.value = SuggestState.Error
-        }
-    }
-
-    private fun submitSuggest(
-        query: String,
-        box: BoundingBox,
-        options: SuggestOptions = SUGGEST_OPTIONS,
-    ) {
-        suggestSession.suggest(query, box, options, suggestSessionListener)
-        suggestState.value = SuggestState.Loading
-    }
-
-    private fun resetSuggest() {
-        suggestSession.reset()
-        suggestState.value = SuggestState.Off
-    }
-
-    companion object {
-        private const val SUGGEST_NUMBER_LIMIT = 20
-        private val SUGGEST_OPTIONS = SuggestOptions().setSuggestTypes(
-            SuggestType.GEO.value
-                    or SuggestType.BIZ.value
-                    or SuggestType.TRANSIT.value
-        )
     }
 }

@@ -9,5 +9,6 @@
     <color name="grey">#DADADA</color>
     <color name="dark_grey">#B0ABAB</color>
     <color name="green">#5BC250</color>
+    <color name="rating">#C9E31F</color>
 
 </resources>

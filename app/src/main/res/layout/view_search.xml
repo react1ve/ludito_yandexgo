@@ -1,26 +1,55 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="64dp"
     android:layout_margin="16dp"
     app:cardCornerRadius="16dp">
 
-    <SearchView
-        android:id="@+id/search"
+    <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_margin="8dp"
-        android:background="@drawable/rounded_search"
-        android:closeIcon="@drawable/ic_close"
-        android:ellipsize="end"
-        android:gravity="center"
-        android:imeOptions="actionSearch"
-        android:paddingHorizontal="15dp"
-        android:paddingStart="0dp"
-        android:paddingEnd="0dp"
-        android:queryBackground="@null"
-        android:queryHint="@string/search_hint"
-        app:defaultQueryHint="Поиск" />
+        android:background="@drawable/rounded_search">
 
+        <ImageView
+            android:id="@+id/search_icon"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_gravity="center_vertical|start"
+            android:layout_marginStart="12dp"
+            android:src="@drawable/ic_search"
+            tools:ignore="ContentDescription" />
+
+        <EditText
+            android:id="@+id/search_edit_text"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:layout_marginStart="44dp"
+            android:layout_marginEnd="44dp"
+            android:background="@null"
+            android:ellipsize="end"
+            android:fontFamily="sans-serif"
+            android:hint="@string/search_hint"
+            android:imeOptions="actionSearch"
+            android:inputType="text"
+            android:maxLines="1"
+            android:singleLine="true"
+            android:textColor="@color/black"
+            android:textColorHint="@color/black"
+            android:textSize="16sp"
+            android:textStyle="bold" />
+
+        <ImageView
+            android:id="@+id/clear_button"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_gravity="center_vertical|end"
+            android:layout_marginEnd="12dp"
+            android:src="@drawable/ic_close"
+            android:visibility="gone"
+            tools:ignore="ContentDescription" />
+    </FrameLayout>
 </androidx.cardview.widget.CardView>

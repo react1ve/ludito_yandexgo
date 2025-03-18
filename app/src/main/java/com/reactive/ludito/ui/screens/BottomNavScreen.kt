@@ -2,9 +2,9 @@ package com.reactive.ludito.ui.screens
 
 import android.view.LayoutInflater
 import android.view.MenuItem
-import com.reactive.ludito.ui.screens.main.MainScreen
-import com.reactive.ludito.ui.screens.tabs.map.MapFragment
+import com.reactive.ludito.ui.screens.tabs.map.MapScreen
 import com.reactive.ludito.ui.screens.tabs.profile.ProfileScreen
+import com.reactive.ludito.ui.screens.tabs.saved.SavedScreen
 import com.reactive.premier.R
 import com.reactive.premier.base.BasePremierFragment
 import com.reactive.premier.base.BasePremierViewModel
@@ -16,8 +16,8 @@ internal class BottomNavScreen :
     override fun getBinding(inflater: LayoutInflater) = ScreenBottomNavBinding.inflate(inflater)
 
     private var bottomFragments = arrayListOf(
-        MainScreen(),
-        MapFragment(),
+        SavedScreen(),
+        MapScreen(),
         ProfileScreen(),
     )
 

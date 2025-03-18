@@ -3,4 +3,7 @@
     style="@style/screenStyle"
     android:background="@color/red">
 
+    <include
+        android:id="@+id/toolbar"
+        layout="@layout/view_toolbar" />
 </FrameLayout>

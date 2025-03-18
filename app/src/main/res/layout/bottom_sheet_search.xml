@@ -14,9 +14,10 @@
         android:layout_marginTop="8dp"
         android:background="@color/grey" />
 
-    <include
-        android:id="@+id/searchContainer"
-        layout="@layout/view_search" />
+    <com.reactive.ludito.ui.custom_views.CustomSearchView
+        android:id="@+id/searchView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
 
     <View
         android:layout_width="match_parent"

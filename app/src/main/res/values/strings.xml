@@ -3,4 +3,8 @@
     <string name="address_not_found">Адрес не найден</string>
     <string name="loading_address">Получаем адрес...</string>
     <string name="search_hint">Поиск</string>
+    <string name="feedbacks">%s оценок</string>
+    <string name="add_to_favorites">Добавить в избранное</string>
+    <string name="my_profile">Мой профиль</string>
+    <string name="my_addresses">Мои адреса</string>
 </resources>

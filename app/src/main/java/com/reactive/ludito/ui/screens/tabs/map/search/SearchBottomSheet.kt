@@ -2,14 +2,13 @@ package com.reactive.ludito.ui.screens.tabs.map.search
 
 import android.content.DialogInterface
 import android.view.LayoutInflater
-import android.widget.SearchView
 import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
-import com.reactive.ludito.R
+import com.reactive.ludito.data.SearchAddress
 import com.reactive.ludito.databinding.BottomSheetSearchBinding
 import com.reactive.ludito.ui.adapters.SearchAddressAdapter
 import com.reactive.premier.utils.bottomsheet.BottomSheetRoundedFragment
-import com.yandex.mapkit.geometry.BoundingBox
+import com.reactive.premier.utils.extensions.showKeyboard
 import com.yandex.mapkit.map.VisibleRegion
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -17,7 +16,7 @@ import org.koin.android.ext.android.inject
 
 internal class SearchBottomSheet(
     private val visibleRegion: VisibleRegion,
-    private val onSearchResult: (data: List<SearchResponseItem>, itemsBoundingBox: BoundingBox) -> Unit
+    private val onSearchResult: (data: SearchAddress) -> Unit
 ) : BottomSheetRoundedFragment<BottomSheetSearchBinding>() {
 
     override fun getBinding(inflater: LayoutInflater) = BottomSheetSearchBinding.inflate(inflater)
@@ -26,7 +25,8 @@ internal class SearchBottomSheet(
     private val searchAdapter by lazy {
         SearchAddressAdapter().apply {
             listener = {
-                viewModel.onSuggestionClick(it)
+                onSearchResult(it)
+                dismiss()
             }
         }
     }
@@ -38,33 +38,19 @@ internal class SearchBottomSheet(
         listenUiChanges()
     }
 
-    private fun setupSearch() = binding.searchContainer.search.apply {
+    private fun setupSearch() = with(binding.searchView) {
+        showKeyboard()
         requestFocus()
-        isIconifiedByDefault = false
-        queryHint = getString(R.string.search_hint)
 
-        setOnSearchClickListener {
-            viewModel.startSearch()
+        setQueryChangedListener { query ->
+            if (query.length >= 3) {
+                performSearch(query)
+            }
         }
 
-        setOnCloseListener {
+        setOnClearClickedListener {
             viewModel.reset()
-            true
         }
-
-        setOnQueryTextListener(object : SearchView.OnQueryTextListener {
-            override fun onQueryTextSubmit(query: String?): Boolean {
-                query?.let { performSearch(it) }
-                return true
-            }
-
-            override fun onQueryTextChange(newText: String?): Boolean {
-                if ((newText?.length ?: 0) >= 3) {
-                    performSearch(newText!!)
-                }
-                return true
-            }
-        })
 
         viewModel.setVisibleRegion(visibleRegion)
 
@@ -72,7 +58,9 @@ internal class SearchBottomSheet(
 
     private fun performSearch(query: String) {
         if (query == viewModel.uiState.value.query) return
+
         viewModel.setQueryText(query)
+        viewModel.startSearch()
     }
 
 
@@ -87,22 +75,10 @@ internal class SearchBottomSheet(
                 val successSearchState = it.searchState as? SearchState.Success
                 val searchItems = successSearchState?.items ?: emptyList()
 
-                searchAdapter.setData(
-                    (it.suggestState as? SuggestState.Success)?.items ?: emptyList()
-                )
-
-                if (successSearchState?.zoomToItems == true) {
-                    onSearchResult(
-                        searchItems,
-                        successSearchState.itemsBoundingBox
-                    )
-                    dismiss()
-                }
-
+                searchAdapter.setData(searchItems)
             }
             .launchIn(lifecycleScope)
 
-        viewModel.subscribeForSuggest().flowWithLifecycle(lifecycle).launchIn(lifecycleScope)
         viewModel.subscribeForSearch().flowWithLifecycle(lifecycle).launchIn(lifecycleScope)
     }
 
