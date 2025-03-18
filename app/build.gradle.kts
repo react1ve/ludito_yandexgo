@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.google.services)
+    id("com.google.devtools.ksp") version "2.1.0-1.0.29"
 }
 
 android {
@@ -52,9 +53,19 @@ android {
             )
         }
     }
+
+    kotlinOptions {
+        freeCompilerArgs += listOf("-Xskip-metadata-version-check")
+    }
 }
 
 dependencies {
-
     implementation(project(mapOf("path" to ":premier")))
+    implementation(libs.room.runtime)
+    implementation(libs.room.ktx)
+    ksp(libs.room.compiler)
+}
+
+configurations.all {
+    exclude(group = "com.intellij", module = "annotations")
 }

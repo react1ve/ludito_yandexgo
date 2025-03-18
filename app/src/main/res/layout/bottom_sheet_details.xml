@@ -53,7 +53,7 @@
         android:layout_width="wrap_content"
         android:layout_height="42dp"
         android:layout_marginTop="10dp"
-        android:background="@drawable/rounded_button"
+        android:background="@drawable/rounded_button_green"
         android:includeFontPadding="false"
         android:paddingHorizontal="20dp"
         android:text="@string/add_to_favorites"

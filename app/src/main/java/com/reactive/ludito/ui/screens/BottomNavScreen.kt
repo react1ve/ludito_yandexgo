@@ -22,8 +22,6 @@ internal class BottomNavScreen :
     )
 
     override fun initialize() {
-        setHasOptionsMenu(true)
-
         binding.bottomNav.setOnNavigationItemSelectedListener { item: MenuItem ->
             return@setOnNavigationItemSelectedListener when (item.itemId) {
                 R.id.nav_saved -> {

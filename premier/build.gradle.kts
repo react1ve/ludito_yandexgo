@@ -82,7 +82,6 @@ dependencies {
     api(libs.androidx.lifecycle.runtime)
 
     api(libs.maps.mobile)
-    implementation(libs.room.runtime)
 
     api(libs.kotlinx.coroutines.core)
     api(libs.kotlinx.coroutines.android)

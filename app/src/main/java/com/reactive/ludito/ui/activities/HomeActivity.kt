@@ -6,7 +6,7 @@ import android.view.LayoutInflater
 import android.view.View
 import com.reactive.ludito.R
 import com.reactive.ludito.databinding.ActivityHomeBinding
-import com.reactive.ludito.ui.screens.tabs.map.MapScreen
+import com.reactive.ludito.ui.screens.BottomNavScreen
 import com.reactive.premier.base.BasePremierActivity
 import com.reactive.premier.base.initialFragment
 import com.reactive.premier.utils.extensions.checkPermissions
@@ -37,6 +37,6 @@ class HomeActivity : BasePremierActivity<ActivityHomeBinding>() {
                 checkPermissions(it)
         }
 
-        initialFragment(MapScreen())
+        initialFragment(BottomNavScreen())
     }
 }

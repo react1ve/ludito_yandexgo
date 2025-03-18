@@ -37,7 +37,7 @@ class RatingView @JvmOverloads constructor(
         feedbacks = findViewById(R.id.feedbacks)
     }
 
-    fun setRating(rating: Int, feedbackCount: Int) {
+    fun setRating(rating: Float, feedbackCount: Int) {
         setStarColor(star1, rating, 1)
         setStarColor(star2, rating, 2)
         setStarColor(star3, rating, 3)
@@ -47,7 +47,7 @@ class RatingView @JvmOverloads constructor(
         feedbacks.text = context.getString(R.string.feedbacks, feedbackCount.toString())
     }
 
-    private fun setStarColor(star: ImageView, rating: Int, starNumber: Int) {
+    private fun setStarColor(star: ImageView, rating: Float, starNumber: Int) {
         val colorRes = if (rating >= starNumber) R2.color.rating else R2.color.grey
         star.setColorFilter(ContextCompat.getColor(context, colorRes))
     }

@@ -11,5 +11,8 @@
     <string name="theme_light">Светлая</string>
     <string name="theme_dark">Темная</string>
     <string name="theme_system">Как в системе</string>
+    <string name="add_address_to_favorites">Добавить адрес в избранное\n</string>
+    <string name="cancel">Отмена</string>
+    <string name="confirm">Подтвердить</string>
 
 </resources>

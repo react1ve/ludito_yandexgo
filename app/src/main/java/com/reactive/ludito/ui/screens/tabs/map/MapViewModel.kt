@@ -9,7 +9,6 @@ import kotlinx.coroutines.withContext
 import org.json.JSONObject
 import java.net.URL
 import java.util.Locale
-import kotlin.math.roundToInt
 
 
 class MapViewModel : BasePremierViewModel() {
@@ -79,7 +78,7 @@ class MapViewModel : BasePremierViewModel() {
                         .getJSONObject("Rating")
                         .getDouble("value")
                 } catch (e: Exception) {
-                    null // Rating not available
+                    null
                 }
 
                 val feedbackCount = try {
@@ -89,21 +88,33 @@ class MapViewModel : BasePremierViewModel() {
                         .getJSONObject("Rating")
                         .getInt("count")
                 } catch (e: Exception) {
-                    null // Feedback count not available
+                    null
+                }
+
+                val (latitude, longitude) = try {
+                    val pos = geoObject
+                        .getJSONObject("Point")
+                        .getString("pos")
+                        .split(" ")
+                    pos[1].toDouble() to pos[0].toDouble()
+                } catch (e: Exception) {
+                    0.0 to 0.0
                 }
 
                 return LocationInfo(
+                    id = "$latitude $longitude".hashCode().toString(),
                     name = name.capitalize(Locale.getDefault()),
                     address = description.ifEmpty { name }.capitalize(Locale.getDefault()),
-                    rating = rating?.roundToInt() ?: 0,
+                    latitude = latitude,
+                    longitude = longitude,
+                    rating = rating?.toFloat() ?: 0f,
                     feedbackCount = feedbackCount ?: 0
-
                 )
             }
-            return LocationInfo("Address not found")
+            return LocationInfo(name = "Address not found")
         } catch (e: Exception) {
             loge(e, "Error parsing geocoder response")
-            return LocationInfo("Address not found")
+            return LocationInfo(name = "Address not found")
         }
     }
 }
