@@ -59,7 +59,10 @@ class MapScreen : BasePremierFragment<FragmentTabMapBinding, MapViewModel>(MapVi
     private fun setupSearch() = with(binding.searchView) {
         disable()
 
-        val bottomsSheet = SearchBottomSheet(visibleRegion = map.visibleRegion) { address ->
+        val bottomsSheet = SearchBottomSheet(
+            visibleRegion = map.visibleRegion,
+            userLocation = userLocationLayer.cameraPosition()?.target
+        ) { address ->
             updateSearchResponsePlacemarks(address)
             focusCamera(address.point)
         }

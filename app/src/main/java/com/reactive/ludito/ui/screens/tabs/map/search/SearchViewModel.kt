@@ -3,7 +3,9 @@ package com.reactive.ludito.ui.screens.tabs.map.search
 import androidx.lifecycle.viewModelScope
 import com.reactive.ludito.data.SearchAddress
 import com.reactive.premier.base.BasePremierViewModel
+import com.yandex.mapkit.GeoObject
 import com.yandex.mapkit.geometry.Geometry
+import com.yandex.mapkit.geometry.Point
 import com.yandex.mapkit.map.VisibleRegion
 import com.yandex.mapkit.map.VisibleRegionUtils
 import com.yandex.mapkit.search.Response
@@ -33,6 +35,7 @@ class SearchViewModel : BasePremierViewModel() {
     private var searchSession: Session? = null
     private var zoomToSearchResult = false
     private val region = MutableStateFlow<VisibleRegion?>(null)
+    private val userLocation = MutableStateFlow<Point?>(null)
     private val searchManager by lazy {
         SearchFactory.getInstance().createSearchManager(SearchManagerType.COMBINED)
     }
@@ -45,10 +48,12 @@ class SearchViewModel : BasePremierViewModel() {
     val uiState: StateFlow<MapUiState> = combine(
         query,
         searchState,
-    ) { query, searchState ->
+        userLocation
+    ) { query, searchState, userLocation ->
         MapUiState(
             query = query,
             searchState = searchState,
+            userLocation = userLocation
         )
     }.stateIn(viewModelScope, SharingStarted.Lazily, MapUiState())
 
@@ -60,9 +65,13 @@ class SearchViewModel : BasePremierViewModel() {
         this.region.value = region
     }
 
+    fun setUserLocation(location: Point) {
+        userLocation.value = location
+    }
+
     fun startSearch(searchText: String? = null) {
         val text = searchText ?: query.value
-        if (query.value.isEmpty()) return
+        if (text.isEmpty()) return
         val region = region.value?.let {
             VisibleRegionUtils.toPolygon(it)
         } ?: return
@@ -94,108 +103,39 @@ class SearchViewModel : BasePremierViewModel() {
     private val searchSessionListener = object : SearchListener {
         override fun onSearchResponse(response: Response) {
             searchItems = response.collection.children.mapNotNull { searchResult ->
-                val obj = searchResult.obj ?: return@mapNotNull null
-                val point = obj.geometry.firstOrNull()?.point ?: return@mapNotNull null
-
-                val name = obj.name ?: ""
-
-                val address = obj.descriptionText ?: ""
-
-                var distance = ""
-                var rating = 0
-                var feedbacks = 0
-
                 try {
-                    obj.metadataContainer.let { container ->
-                        try {
-                            val distanceMetadata =
-                                container.getItem(com.yandex.mapkit.search.ToponymResultMetadata::class.java)
-                            if (distanceMetadata != null) {
-                                distanceMetadata::class.java.getDeclaredField("formattedDistance")
-                                    ?.let { field ->
-                                        field.isAccessible = true
-                                        val distanceValue = field.get(distanceMetadata)
-                                        if (distanceValue != null) {
-                                            distance = distanceValue.toString()
-                                        }
-                                    }
-                            }
-                        } catch (e: Exception) {
-                            e.printStackTrace()
-                        }
+                    val obj = searchResult.obj ?: return@mapNotNull null
+                    val point = obj.geometry.firstOrNull()?.point ?: return@mapNotNull null
 
-                        try {
-                            val businessMetadata =
-                                container.getItem(com.yandex.mapkit.search.BusinessObjectMetadata::class.java)
-                            if (businessMetadata != null) {
-                                try {
-                                    businessMetadata::class.java.getDeclaredField("rating")
-                                        ?.let { field ->
-                                            field.isAccessible = true
-                                            val ratingValue = field.get(businessMetadata)
-                                            if (ratingValue != null && ratingValue is Number) {
-                                                rating = ratingValue.toInt()
-                                            }
-                                        }
-                                } catch (e: Exception) {
-                                    try {
-                                        businessMetadata::class.java.getDeclaredField("score")
-                                            ?.let { field ->
-                                                field.isAccessible = true
-                                                val scoreValue = field.get(businessMetadata)
-                                                if (scoreValue != null && scoreValue is Number) {
-                                                    rating = scoreValue.toInt()
-                                                }
-                                            }
-                                    } catch (e: Exception) {
-                                        e.printStackTrace()
-                                    }
-                                }
+                    val name = obj.name ?: ""
+                    val address = obj.descriptionText ?: ""
 
-                                try {
-                                    businessMetadata::class.java.getDeclaredField("reviewCount")
-                                        ?.let { field ->
-                                            field.isAccessible = true
-                                            val countValue = field.get(businessMetadata)
-                                            if (countValue != null && countValue is Number) {
-                                                feedbacks = countValue.toInt()
-                                            }
-                                        }
-                                } catch (e: Exception) {
-                                    try {
-                                        businessMetadata::class.java.getDeclaredField("reviews")
-                                            ?.let { field ->
-                                                field.isAccessible = true
-                                                val reviewsValue = field.get(businessMetadata)
-                                                if (reviewsValue != null && reviewsValue is Number) {
-                                                    feedbacks = reviewsValue.toInt()
-                                                }
-                                            }
-                                    } catch (e: Exception) {
-                                        e.printStackTrace()
-                                    }
-                                }
-                            }
-                        } catch (e: Exception) {
-                            e.printStackTrace()
-                        }
+                    var distance = ""
+                    var rating = 0
+                    var feedbacks = 0
+
+                    extractMetadata(obj)?.let { metadata ->
+                        distance = metadata.distance
+                        rating = metadata.rating
+                        feedbacks = metadata.feedbacks
                     }
+
+                    val id = (name + address + point.latitude + point.longitude).hashCode()
+
+                    SearchAddress(
+                        id = id,
+                        name = name,
+                        address = address,
+                        distance = distance,
+                        rating = rating,
+                        feedbacks = feedbacks,
+                        point = point,
+                        geoObject = obj
+                    )
                 } catch (e: Exception) {
                     e.printStackTrace()
+                    null
                 }
-
-                val id = (name + address + point.latitude + point.longitude).hashCode()
-
-                SearchAddress(
-                    id = id,
-                    name = name,
-                    address = address,
-                    distance = distance,
-                    rating = rating,
-                    feedbacks = feedbacks,
-                    point = point,
-                    geoObject = obj
-                )
             }
 
             val boundingBox = response.metadata.boundingBox ?: return
@@ -212,6 +152,69 @@ class SearchViewModel : BasePremierViewModel() {
         }
     }
 
+    private fun extractMetadata(obj: GeoObject): MetadataResult? {
+        return try {
+            var distance = ""
+            var rating = 0
+            var feedbacks = 0
+
+            obj.metadataContainer?.let { container ->
+                try {
+                    val distanceMetadata =
+                        container.getItem(com.yandex.mapkit.search.ToponymResultMetadata::class.java)
+                    if (distanceMetadata != null) {
+                        distanceMetadata::class.java.getDeclaredField("formattedDistance")
+                            ?.let { field ->
+                                field.isAccessible = true
+                                val distanceValue = field.get(distanceMetadata)
+                                if (distanceValue != null) {
+                                    distance = distanceValue.toString()
+                                }
+                            }
+                    }
+                } catch (e: Exception) {
+                }
+
+                try {
+                    val businessMetadata =
+                        container.getItem(com.yandex.mapkit.search.BusinessObjectMetadata::class.java)
+                    if (businessMetadata != null) {
+                        extractNumberField(businessMetadata, "rating")?.let {
+                            rating = it
+                        } ?: extractNumberField(businessMetadata, "score")?.let {
+                            rating = it
+                        }
+
+                        extractNumberField(businessMetadata, "reviewCount")?.let {
+                            feedbacks = it
+                        } ?: extractNumberField(businessMetadata, "reviews")?.let {
+                            feedbacks = it
+                        }
+                    }
+                } catch (e: Exception) {
+                }
+            }
+
+            MetadataResult(distance, rating, feedbacks)
+        } catch (e: Exception) {
+            null
+        }
+    }
+
+    private fun extractNumberField(obj: Any, fieldName: String): Int? {
+        return try {
+            obj::class.java.getDeclaredField(fieldName)?.let { field ->
+                field.isAccessible = true
+                val value = field.get(obj)
+                if (value != null && value is Number) {
+                    value.toInt()
+                } else null
+            }
+        } catch (e: Exception) {
+            null
+        }
+    }
+
     private fun submitSearch(query: String, geometry: Geometry) {
         searchSession?.cancel()
         searchSession = searchManager.submit(
@@ -219,10 +222,17 @@ class SearchViewModel : BasePremierViewModel() {
             geometry,
             SearchOptions().apply {
                 resultPageSize = 32
+                userPosition = userLocation.value
             },
             searchSessionListener
         )
         searchState.value = SearchState.Loading
         zoomToSearchResult = true
     }
+
+    private data class MetadataResult(
+        val distance: String,
+        val rating: Int,
+        val feedbacks: Int
+    )
 }

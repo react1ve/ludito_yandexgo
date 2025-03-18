@@ -8,7 +8,11 @@ import com.reactive.ludito.data.SearchAddress
 import com.reactive.ludito.databinding.BottomSheetSearchBinding
 import com.reactive.ludito.ui.adapters.SearchAddressAdapter
 import com.reactive.premier.utils.bottomsheet.BottomSheetRoundedFragment
+import com.reactive.premier.utils.extensions.gone
+import com.reactive.premier.utils.extensions.showGone
 import com.reactive.premier.utils.extensions.showKeyboard
+import com.reactive.premier.utils.extensions.visible
+import com.yandex.mapkit.geometry.Point
 import com.yandex.mapkit.map.VisibleRegion
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -16,6 +20,7 @@ import org.koin.android.ext.android.inject
 
 internal class SearchBottomSheet(
     private val visibleRegion: VisibleRegion,
+    private val userLocation: Point? = null,
     private val onSearchResult: (data: SearchAddress) -> Unit
 ) : BottomSheetRoundedFragment<BottomSheetSearchBinding>() {
 
@@ -35,6 +40,7 @@ internal class SearchBottomSheet(
         setMaxHeight(0.9)
         setupSearch()
         setupRecycler()
+        setupLocation()
         listenUiChanges()
     }
 
@@ -45,15 +51,24 @@ internal class SearchBottomSheet(
         setQueryChangedListener { query ->
             if (query.length >= 3) {
                 performSearch(query)
+            } else if (query.isEmpty()) {
+                viewModel.reset()
+                searchAdapter.setData(emptyList())
             }
         }
 
         setOnClearClickedListener {
             viewModel.reset()
+            searchAdapter.setData(emptyList())
         }
 
         viewModel.setVisibleRegion(visibleRegion)
+    }
 
+    private fun setupLocation() {
+        userLocation?.let { location ->
+            viewModel.setUserLocation(location)
+        }
     }
 
     private fun performSearch(query: String) {
@@ -63,19 +78,35 @@ internal class SearchBottomSheet(
         viewModel.startSearch()
     }
 
-
     private fun setupRecycler() = with(binding.recycler) {
         adapter = searchAdapter
     }
 
-    private fun listenUiChanges() {
+    private fun listenUiChanges() = with(binding) {
         viewModel.uiState
             .flowWithLifecycle(lifecycle)
             .onEach {
-                val successSearchState = it.searchState as? SearchState.Success
-                val searchItems = successSearchState?.items ?: emptyList()
+                when (val searchState = it.searchState) {
+                    is SearchState.Loading -> {
+                        progressBar.visible()
+                    }
 
-                searchAdapter.setData(searchItems)
+                    is SearchState.Success -> {
+                        progressBar.gone()
+                        searchAdapter.setData(searchState.items)
+
+                        emptyView.showGone(searchState.items.isEmpty())
+                    }
+
+                    is SearchState.Error -> {
+                        progressBar.gone()
+                        errorView.visible()
+                    }
+
+                    else -> {
+                        progressBar.gone()
+                    }
+                }
             }
             .launchIn(lifecycleScope)
 
