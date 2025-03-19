@@ -14,7 +14,11 @@ class SavedScreen :
 
     override fun getBinding(inflater: LayoutInflater) = FragmentTabSavedBinding.inflate(inflater)
 
-    private val adapter by lazy { SavedLocationsAdapter { viewModel.deleteLocation(it) } }
+    private val adapter by lazy {
+        SavedLocationsAdapter {
+            viewModel.deleteLocation(it)
+        }
+    }
 
     override fun initialize() {
         with(binding) {

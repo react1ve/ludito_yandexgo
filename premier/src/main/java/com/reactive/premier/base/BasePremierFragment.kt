@@ -81,15 +81,6 @@ abstract class BasePremierFragment<V : ViewBinding, VM : BasePremierViewModel>(c
         }
     }
 
-    fun replaceFragment(fragment: Fragment, @IdRes id: Int = navLayoutId() ?: parentLayoutId()) {
-        hideKeyboard()
-        showProgress(false)
-        activity?.supportFragmentManager?.commit(allowStateLoss = true) {
-            setCustomAnimations(R.anim.fade_in, R.anim.fade_out)
-            replace(id, fragment)
-        }
-    }
-
     fun finishFragment() {
         hideKeyboard()
         showProgress(false)
@@ -204,5 +195,4 @@ fun FragmentActivity.addFragment(
 }
 
 fun FragmentActivity.finishFragment() = supportFragmentManager.popBackStack()
-fun navLayoutId() = BasePremierActivity.navLayoutId
 fun parentLayoutId() = BasePremierActivity.parentLayoutId

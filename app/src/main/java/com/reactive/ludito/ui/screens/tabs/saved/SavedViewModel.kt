@@ -11,7 +11,6 @@ import kotlinx.coroutines.launch
 
 class SavedViewModel(private val repository: LocationsRepository) : BasePremierViewModel() {
 
-
     val savedLocations: StateFlow<List<LocationInfo>> = repository.allSavedLocations
         .stateIn(
             scope = viewModelScope,

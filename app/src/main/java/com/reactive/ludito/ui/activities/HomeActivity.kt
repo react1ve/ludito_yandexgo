@@ -10,7 +10,6 @@ import com.reactive.ludito.ui.screens.BottomNavScreen
 import com.reactive.premier.base.BasePremierActivity
 import com.reactive.premier.base.initialFragment
 import com.reactive.premier.utils.extensions.checkPermissions
-import com.reactive.premier.R as R2
 
 class HomeActivity : BasePremierActivity<ActivityHomeBinding>() {
 
@@ -19,10 +18,6 @@ class HomeActivity : BasePremierActivity<ActivityHomeBinding>() {
 
     override fun getActivityContainerId(): Int {
         return R.id.fragmentContainer
-    }
-
-    override fun getNavContainerId(): Int? {
-        return R2.id.navContainer
     }
 
     override fun getProgressBar(): View = binding.progressBar

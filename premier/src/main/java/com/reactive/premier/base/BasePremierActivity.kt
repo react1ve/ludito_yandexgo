@@ -14,9 +14,6 @@ abstract class BasePremierActivity<V : ViewBinding> : AppCompatActivity() {
     companion object {
         @IdRes
         var parentLayoutId: Int = 0
-
-        @IdRes
-        var navLayoutId: Int? = 0
     }
 
     protected lateinit var binding: V
@@ -26,9 +23,6 @@ abstract class BasePremierActivity<V : ViewBinding> : AppCompatActivity() {
     @IdRes
     abstract fun getActivityContainerId(): Int
 
-    @IdRes
-    abstract fun getNavContainerId(): Int?
-
     abstract fun getProgressBar(): View?
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -36,7 +30,6 @@ abstract class BasePremierActivity<V : ViewBinding> : AppCompatActivity() {
         binding = getViewBinding()
 
         parentLayoutId = getActivityContainerId()
-        navLayoutId = getNavContainerId()
 
         setContentView(binding.root)
 
