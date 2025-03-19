@@ -79,14 +79,13 @@ dependencies {
     api(libs.material)
     api(libs.androidx.activity)
     api(libs.androidx.constraintlayout)
-    api(libs.androidx.lifecycle.runtime)
 
     api(libs.maps.mobile)
 
     api(libs.kotlinx.coroutines.core)
     api(libs.kotlinx.coroutines.android)
 
-    api(libs.androidx.lifecycle.extensions)
+    api(libs.androidx.lifecycle.runtime)
     api(libs.androidx.lifecycle.viewmodel.ktx)
 
     api(libs.firebase.core)

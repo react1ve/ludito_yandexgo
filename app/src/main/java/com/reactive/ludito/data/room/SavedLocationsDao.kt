@@ -12,18 +12,13 @@ interface SavedLocationsDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun saveLocation(location: SavedLocationEntity)
 
+    @Delete
+    suspend fun deleteLocation(location: SavedLocationEntity)
+
     @Query("SELECT * FROM saved_locations")
     fun getAllSavedLocations(): Flow<List<SavedLocationEntity>>
 
     @Query("SELECT * FROM saved_locations WHERE id = :locationId")
     suspend fun getLocationById(locationId: String): SavedLocationEntity?
 
-    @Delete
-    suspend fun deleteLocation(location: SavedLocationEntity)
-
-    @Query("DELETE FROM saved_locations WHERE id = :locationId")
-    suspend fun deleteLocationById(locationId: String)
-
-    @Query("DELETE FROM saved_locations")
-    suspend fun deleteAllLocations()
 }

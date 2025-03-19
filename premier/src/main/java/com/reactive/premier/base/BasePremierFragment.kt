@@ -52,7 +52,10 @@ abstract class BasePremierFragment<V : ViewBinding, VM : BasePremierViewModel>(c
         setFocus(view)
 
         initClicks()
+    }
 
+    override fun onResume() {
+        super.onResume()
         observe()
     }
 

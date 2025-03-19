@@ -6,12 +6,12 @@ import com.reactive.ludito.ui.screens.tabs.map.MapViewModel
 import com.reactive.ludito.ui.screens.tabs.map.details.DetailsViewModel
 import com.reactive.ludito.ui.screens.tabs.map.search.SearchViewModel
 import com.reactive.ludito.ui.screens.tabs.saved.SavedViewModel
-import org.koin.android.ext.koin.androidContext
+import org.koin.android.ext.koin.androidApplication
 import org.koin.androidx.viewmodel.dsl.viewModel
 import org.koin.dsl.module
 
 val databaseModule = module {
-    single { LocationsDatabase.getDatabase(androidContext()) }
+    single { LocationsDatabase.getDatabase(androidApplication()).savedLocationsDao() }
     single { LocationsRepository(get()) }
 }
 

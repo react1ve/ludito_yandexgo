@@ -53,6 +53,9 @@ internal class DetailsBottomSheet(private val onClose: () -> Unit) :
             if (isSaved) {
                 addToFavorites.text = getString(R.string.remove_from_favorites)
                 addToFavorites.setBackgroundResource(R2.drawable.rounded_button_red)
+                addToFavorites.setOnClickListener {
+                    viewModel.addToFavorite(locationInfo)
+                }
             } else {
                 addToFavorites.text = getString(R.string.add_to_favorites)
                 addToFavorites.setBackgroundResource(R2.drawable.rounded_button_green)
@@ -66,13 +69,13 @@ internal class DetailsBottomSheet(private val onClose: () -> Unit) :
     private fun showAddToFavoritesDialog() {
         val dialogBinding = DialogAddToFavoritesBinding.inflate(layoutInflater)
 
-        val dialog = AlertDialog.Builder(requireContext(), R2.style.RoundedCornerDialog)
-            .setView(dialogBinding.root)
-            .setCancelable(true)
-            .create()
+        val dialog: AlertDialog =
+            AlertDialog.Builder(requireContext(), R2.style.RoundedCornerDialog)
+                .setView(dialogBinding.root)
+                .setCancelable(true)
+                .create()
 
         with(dialogBinding) {
-
             address.setText(locationInfo?.address)
             cancelButton.setOnClickListener {
                 dialog.dismiss()
@@ -85,6 +88,7 @@ internal class DetailsBottomSheet(private val onClose: () -> Unit) :
 
         dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
         dialog.show()
+
     }
 
     override fun onDismiss(dialog: DialogInterface) {

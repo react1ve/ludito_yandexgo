@@ -11,22 +11,17 @@ import kotlinx.coroutines.launch
 
 class SavedViewModel(private val repository: LocationsRepository) : BasePremierViewModel() {
 
+
     val savedLocations: StateFlow<List<LocationInfo>> = repository.allSavedLocations
         .stateIn(
             scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
+            started = SharingStarted.Eagerly,
             initialValue = emptyList()
         )
 
     fun deleteLocation(locationInfo: LocationInfo) {
         viewModelScope.launch {
             repository.deleteLocation(locationInfo)
-        }
-    }
-
-    fun clearAllLocations() {
-        viewModelScope.launch {
-            repository.clearAllSavedLocations()
         }
     }
 }

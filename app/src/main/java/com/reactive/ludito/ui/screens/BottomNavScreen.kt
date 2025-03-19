@@ -49,8 +49,4 @@ internal class BottomNavScreen :
     private fun selectFragment(pos: Int) {
         replaceFragment(bottomFragments[pos])
     }
-
-    override fun observe() {
-    }
-
 }

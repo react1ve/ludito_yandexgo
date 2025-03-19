@@ -21,13 +21,11 @@ class SavedScreen :
             toolbar.toolbarText.text = getString(R.string.my_addresses)
 
             recycler.adapter = adapter
-
             viewLifecycleOwner.lifecycleScope.launch {
                 viewModel.savedLocations.collectLatest { locations ->
                     adapter.setData(locations)
                 }
             }
-
         }
     }
 }

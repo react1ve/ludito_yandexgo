@@ -42,7 +42,6 @@ class MapScreen : BasePremierFragment<FragmentTabMapBinding, MapViewModel>(MapVi
     private val detailsBottomSheet by lazy {
         DetailsBottomSheet {
             binding.searchView.setText("")
-            focusOnUserLocation()
         }
     }
 
@@ -176,14 +175,16 @@ class MapScreen : BasePremierFragment<FragmentTabMapBinding, MapViewModel>(MapVi
         cameraDebounceHandler.postDelayed(cameraDebounceRunnable!!, 150)
     }
 
-    private fun startPinLiftAnimation() {
+    private fun startPinLiftAnimation() = try {
         val pinLiftHeight = resources.displayMetrics.heightPixels / 20f
         animatePinElevation(true, pinLiftHeight)
+    } catch (_: Exception) {
     }
 
-    private fun startPinDropAnimation(onAnimationComplete: () -> Unit) {
+    private fun startPinDropAnimation(onAnimationComplete: () -> Unit) = try {
         val pinLiftHeight = resources.displayMetrics.heightPixels / 20f
         animatePinElevation(false, pinLiftHeight, onAnimationComplete)
+    } catch (_: Exception) {
     }
 
     private fun animatePinElevation(

@@ -22,12 +22,12 @@ class DetailsViewModel(private val repository: LocationsRepository) : BasePremie
     fun addToFavorite(locationInfo: LocationInfo?) {
         locationInfo?.let {
             viewModelScope.launch {
-                if (_isSaved.value) {
+                _isSaved.value = !_isSaved.value
+                if (_isSaved.value.not()) {
                     repository.deleteLocation(it)
                 } else {
                     repository.saveLocation(it)
                 }
-                _isSaved.value = !_isSaved.value
             }
         }
     }

@@ -1,14 +1,12 @@
 package com.reactive.ludito.data.repository
 
 import com.reactive.ludito.data.LocationInfo
-import com.reactive.ludito.data.room.LocationsDatabase
 import com.reactive.ludito.data.room.SavedLocationEntity
+import com.reactive.ludito.data.room.SavedLocationsDao
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
-class LocationsRepository(private val database: LocationsDatabase) {
-
-    private val savedLocationsDao = database.savedLocationsDao()
+class LocationsRepository(private val savedLocationsDao: SavedLocationsDao) {
 
     val allSavedLocations: Flow<List<LocationInfo>> = savedLocationsDao.getAllSavedLocations()
         .map { entities -> entities.map { it.toLocationInfo() } }
@@ -18,18 +16,10 @@ class LocationsRepository(private val database: LocationsDatabase) {
     }
 
     suspend fun deleteLocation(locationInfo: LocationInfo) {
-        savedLocationsDao.deleteLocationById(locationInfo.id)
-    }
-
-    suspend fun getLocationById(id: String): LocationInfo? {
-        return savedLocationsDao.getLocationById(id)?.toLocationInfo()
+        savedLocationsDao.deleteLocation(SavedLocationEntity.fromLocationInfo(locationInfo))
     }
 
     suspend fun isLocationSaved(id: String): Boolean {
         return savedLocationsDao.getLocationById(id) != null
-    }
-
-    suspend fun clearAllSavedLocations() {
-        savedLocationsDao.deleteAllLocations()
     }
 }
