@@ -29,34 +29,14 @@ Compose для пользовательского интерфейса.
 
 ## Настройка и запуск проекта
 
-### Начало работы
-
-1. Клонировать репозиторий:
-
-```bash
-git clone https://github.com/yourusername/yandex-maps-app.git
-```
-
-2. Открыть проект в Android Studio
-
-3. Собрать проект:
-
-```bash
-./gradlew build
-```
-
-4. Запустить приложение на эмуляторе или физическом устройстве:
-
-```bash
-./gradlew installDebug
-```
-
 ## Интеграция YandexMaps
 
 В приложении используется YandexMaps SDK со следующим тестовым ключом:
+Добавите в ваш `local.properties` следующие ключи:
 
 ```
-ВАШ_КЛЮЧ_ОТ_ЯНДЕКС_КИТА
+YANDEX_MAPS_API_KEY=ВАШ_КЛЮЧ_ОТ_YANDEX_MAP_КИТА
+YANDEX_GEOCODER_API_KEY=ВАШ_КЛЮЧ_ОТ_YANDEX_GEOCODER_КИТА
 ```
 
 ## Основные компоненты
@@ -79,19 +59,6 @@ git clone https://github.com/yourusername/yandex-maps-app.git
 - Отображение результатов поиска в виде списка
 - Возможность выбора результата и навигации к этому месту на карте
 
-## Сборка
-
-Генерация APK файла:
-
-```bash
-./gradlew assembleDebug
-```
-
-APK файл будет расположен по пути:
-
-```
-app/build/outputs/apk/debug/build-Ver-0.0.1.apk
-```
 
 ## Реализация дизайна
 
